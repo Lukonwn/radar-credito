@@ -5,7 +5,7 @@ const { loadConfig } = require("./config");
 const { createPostgres, initializeDatabase } = require("./postgres");
 const { createStore } = require("./store");
 const { createAI } = require("./ai");
-const { sendMessage, telegramRequest, sendTyping, naturalDelay, MAIN_MENU } = require("./telegram");
+const { sendMessage, telegramRequest, sendTyping, naturalDelay, MAIN_MENU, officialSiteButton } = require("./telegram");
 
 const config = loadConfig();
 const db = createPostgres(config);
@@ -27,12 +27,42 @@ function isLikelyName(text) {
   return !blocked.test(value);
 }
 
+function isDirectSiteRequest(text) {
+  return /\\b(link|site|p[aá]gina|endere[cç]o|solicitar|acessar|abrir)\\b/i.test(String(text || ""));
+}
+
+function isAffirmative(text) {
+  return /^(sim|s|pode|claro|quero|manda|envia|pode mandar|pode enviar|isso|por favor)[.! ]*$/i.test(String(text || "").trim());
+}
+
+function previousAssistantOfferedLink(history) {
+  const previousAssistant = [...history].reverse().find((item) => item.role === "assistant");
+  if (!previousAssistant) return false;
+  return /(quer que eu (te )?(envie|mande)|posso te enviar|posso mandar|quer o link|envio o link|mandar o link)/i.test(previousAssistant.content || "");
+}
+
 async function answerWithAI({ leadId, chatId, text, messageId }) {
   await store.saveMessage(leadId, "user", text, messageId);
   const profile = await store.getLeadProfile(leadId);
   const history = await store.getRecentMessages(leadId, 12);
   const priorHistory = history.slice(0, -1);
   const memory = await store.getMemory(leadId);
+
+  const shouldOpenOfficialSite =
+    isDirectSiteRequest(text) ||
+    (isAffirmative(text) && previousAssistantOfferedLink(priorHistory));
+
+  if (shouldOpenOfficialSite) {
+    const message = "Claro! Para continuar, toque no botão abaixo. A página oficial da Ecred será aberta aqui no Telegram. Confira as condições e os custos antes de enviar sua solicitação.";
+    await sendTyping(config.telegramToken, chatId);
+    await naturalDelay(message);
+    await sendMessage(config.telegramToken, chatId, message, {
+      reply_markup: officialSiteButton(config.ecredUrl)
+    });
+    await store.saveMessage(leadId, "assistant", message);
+    await store.logEvent(leadId, "official_site_button_shown", { url: config.ecredUrl });
+    return;
+  }
 
   await sendTyping(config.telegramToken, chatId);
   const answer = await ai.reply({

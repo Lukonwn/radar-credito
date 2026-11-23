@@ -36,6 +36,14 @@ async function sendMessage(token, chatId, text, options = {}) {
   }
 }
 
+function officialSiteButton(url) {
+  return {
+    inline_keyboard: [[
+      { text: "Acessar site oficial", web_app: { url } }
+    ]]
+  };
+}
+
 const MAIN_MENU = {
   inline_keyboard: [
     [{ text: "Quero solicitar empréstimo", callback_data: "menu_apply" }],
@@ -45,4 +53,4 @@ const MAIN_MENU = {
   ]
 };
 
-module.exports = { telegramRequest, sendMessage, sendTyping, naturalDelay, MAIN_MENU };
+module.exports = { telegramRequest, sendMessage, sendTyping, naturalDelay, MAIN_MENU, officialSiteButton };

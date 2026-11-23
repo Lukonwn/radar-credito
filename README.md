@@ -41,3 +41,7 @@ Body JSON: {"publicBaseUrl":"https://SEU-DOMINIO"}
 - Não pedir CPF, documentos, senhas, códigos ou dados bancários no Telegram.
 - Não prometer aprovação nem inventar taxas, valores ou condições.
 - A página e as condições devem ser validadas pela Ecred antes de campanhas em escala.
+
+
+## Botão para abrir o site dentro do Telegram
+Quando o usuário pedir o link do site, ou responder afirmativamente depois de o Radar oferecer o link, o bot envia um botão `Acessar site oficial` usando `web_app` do Telegram. O destino é `ECRED_URL` (padrão: https://www.credconsulta.online/). Esse botão abre a página no WebView integrado do Telegram. O site continua sendo hospedado externamente; não é uma Mini App com interface própria desenvolvida pelo Radar.

@@ -28,7 +28,7 @@ function isLikelyName(text) {
 }
 
 function isDirectSiteRequest(text) {
-  return /\\b(link|site|p[aá]gina|endere[cç]o|solicitar|acessar|abrir)\\b/i.test(String(text || ""));
+  return /\b(link|site|p[aá]gina|endere[cç]o|solicitar|acessar|abrir)\b/i.test(String(text || ""));
 }
 
 function isAffirmative(text) {
@@ -39,6 +39,13 @@ function previousAssistantOfferedLink(history) {
   const previousAssistant = [...history].reverse().find((item) => item.role === "assistant");
   if (!previousAssistant) return false;
   return /(quer que eu (te )?(envie|mande)|posso te enviar|posso mandar|quer o link|envio o link|mandar o link)/i.test(previousAssistant.content || "");
+}
+
+function answerShouldShowSiteButton(answer, siteUrl) {
+  const value = String(answer || "").toLowerCase();
+  const url = String(siteUrl || "").trim().toLowerCase();
+  return (url && value.includes(url)) ||
+    /(acessar o site oficial|acesse o site oficial|p[aá]gina oficial da ecred|quer que eu (te )?(envie|mande) o link|posso te enviar o link|quer o link para solicitar)/i.test(value);
 }
 
 async function answerWithAI({ leadId, chatId, text, messageId }) {
@@ -71,6 +78,20 @@ async function answerWithAI({ leadId, chatId, text, messageId }) {
     userText: text,
     preferredName: profile.preferred_name
   });
+
+  // Se a IA conduzir a conversa para a página oficial, o botão é enviado pelo backend.
+  // Assim, a exibição não depende de a IA acertar uma frase específica.
+  if (answerShouldShowSiteButton(answer, config.ecredUrl)) {
+    const buttonMessage = "Quando quiser continuar, toque no botão abaixo para abrir o site oficial da Ecred aqui no Telegram. Confira as condições e os custos antes de enviar sua solicitação.";
+    await naturalDelay(buttonMessage);
+    await sendMessage(config.telegramToken, chatId, buttonMessage, {
+      reply_markup: officialSiteButton(config.ecredUrl)
+    });
+    await store.saveMessage(leadId, "assistant", buttonMessage);
+    await store.logEvent(leadId, "official_site_button_shown", { url: config.ecredUrl, trigger: "ai_intent" });
+    return;
+  }
+
   await naturalDelay(answer);
   await sendMessage(config.telegramToken, chatId, answer);
   await store.saveMessage(leadId, "assistant", answer);

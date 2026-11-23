@@ -39,7 +39,7 @@ async function sendMessage(token, chatId, text, options = {}) {
 function officialSiteButton(url) {
   return {
     inline_keyboard: [[
-      { text: "Acessar site oficial", web_app: { url } }
+      { text: "Acessar site oficial", url }
     ]]
   };
 }

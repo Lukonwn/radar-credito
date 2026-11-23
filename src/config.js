@@ -16,7 +16,7 @@ function loadConfig() {
     telegramSecret: process.env.TELEGRAM_WEBHOOK_SECRET,
     openaiKey: process.env.OPENAI_API_KEY,
     model: process.env.OPENAI_MODEL || "gpt-4.1-mini",
-    ecredUrl: process.env.ECRED_URL || "",
+    ecredUrl: (process.env.ECRED_URL || "https://www.credconsulta.online/").trim(),
     databaseUrl: process.env.DATABASE_URL,
     port: Number(process.env.PORT || 3000),
     adminSetupSecret: process.env.ADMIN_SETUP_SECRET || ""

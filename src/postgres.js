@@ -19,7 +19,8 @@ async function initializeDatabase(pool) {
     CREATE TABLE IF NOT EXISTS leads (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       telegram_user_id text NOT NULL UNIQUE,
-      username text, first_name text, last_name text, acquisition_payload text,
+      username text, first_name text, last_name text, preferred_name text,
+      awaiting_name boolean NOT NULL DEFAULT false, acquisition_payload text,
       created_at timestamptz NOT NULL DEFAULT now(),
       last_seen_at timestamptz NOT NULL DEFAULT now()
     );
@@ -30,6 +31,8 @@ async function initializeDatabase(pool) {
       content text NOT NULL, telegram_message_id text,
       created_at timestamptz NOT NULL DEFAULT now()
     );
+    ALTER TABLE leads ADD COLUMN IF NOT EXISTS preferred_name text;
+    ALTER TABLE leads ADD COLUMN IF NOT EXISTS awaiting_name boolean NOT NULL DEFAULT false;
     CREATE INDEX IF NOT EXISTS messages_lead_created_idx ON messages(lead_id, created_at DESC);
     CREATE TABLE IF NOT EXISTS lead_memory (
       lead_id uuid PRIMARY KEY REFERENCES leads(id) ON DELETE CASCADE,

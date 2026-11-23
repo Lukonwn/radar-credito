@@ -6,7 +6,6 @@ async function telegramRequest(token, method, payload) {
     headers: { "content-type": "application/json" },
     body: JSON.stringify(payload)
   });
-
   const data = await response.json();
   if (!response.ok || !data.ok) {
     throw new Error(`Telegram ${method} falhou: ${data.description || response.status}`);
@@ -14,17 +13,36 @@ async function telegramRequest(token, method, payload) {
   return data.result;
 }
 
-async function sendMessage(token, chatId, text) {
-  // Telegram limita text messages a 4096 caracteres.
+async function sendTyping(token, chatId) {
+  await telegramRequest(token, "sendChatAction", { chat_id: chatId, action: "typing" });
+}
+
+function naturalDelay(text) {
+  // Ritmo moderado: evita resposta instantânea sem deixar a pessoa esperando demais.
+  const ms = Math.min(3200, Math.max(900, 650 + String(text || "").length * 13));
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function sendMessage(token, chatId, text, options = {}) {
   const chunks = [];
   for (let i = 0; i < text.length; i += 3900) chunks.push(text.slice(i, i + 3900));
-  for (const chunk of chunks) {
+  for (let index = 0; index < chunks.length; index++) {
     await telegramRequest(token, "sendMessage", {
       chat_id: chatId,
-      text: chunk,
-      disable_web_page_preview: true
+      text: chunks[index],
+      disable_web_page_preview: true,
+      ...(index === chunks.length - 1 && options.reply_markup ? { reply_markup: options.reply_markup } : {})
     });
   }
 }
 
-module.exports = { telegramRequest, sendMessage };
+const MAIN_MENU = {
+  inline_keyboard: [
+    [{ text: "Quero solicitar empréstimo", callback_data: "menu_apply" }],
+    [{ text: "Estou negativado", callback_data: "menu_negative" }],
+    [{ text: "Quero entender como funciona", callback_data: "menu_how" }],
+    [{ text: "Tenho uma dúvida", callback_data: "menu_question" }]
+  ]
+};
+
+module.exports = { telegramRequest, sendMessage, sendTyping, naturalDelay, MAIN_MENU };

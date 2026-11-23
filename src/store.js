@@ -12,6 +12,25 @@ function createStore(pool) {
     return result.rows[0].id;
   }
 
+  async function setAwaitingName(leadId, value) {
+    await pool.query(`UPDATE leads SET awaiting_name=$2 WHERE id=$1`, [leadId, value]);
+  }
+
+  async function getLeadProfile(leadId) {
+    const result = await pool.query(
+      `SELECT preferred_name, awaiting_name FROM leads WHERE id=$1`,
+      [leadId]
+    );
+    return result.rows[0] || { preferred_name: null, awaiting_name: false };
+  }
+
+  async function savePreferredName(leadId, name) {
+    await pool.query(
+      `UPDATE leads SET preferred_name=$2, awaiting_name=false WHERE id=$1`,
+      [leadId, name]
+    );
+  }
+
   async function saveMessage(leadId, role, content, telegramMessageId = null) {
     await pool.query(
       `INSERT INTO messages (lead_id, role, content, telegram_message_id) VALUES ($1,$2,$3,$4)`,
@@ -47,7 +66,8 @@ function createStore(pool) {
     );
   }
 
-  return { upsertLead, saveMessage, getRecentMessages, getMemory, saveMemory, logEvent };
+  return { upsertLead, saveMessage, getRecentMessages, getMemory, saveMemory, logEvent,
+    setAwaitingName, getLeadProfile, savePreferredName };
 }
 
 module.exports = { createStore };

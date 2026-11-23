@@ -1,38 +1,43 @@
-# Radar de Crédito — Entrega 2 (PostgreSQL no Railway)
+# Radar de Crédito — Entrega 4
 
-Bot conversacional para Telegram com OpenAI e PostgreSQL. O banco é criado automaticamente na primeira inicialização.
+Bot conversacional para Telegram com OpenAI e PostgreSQL no Railway.
 
-## Requisitos
-- Node.js 20+ (para execução local)
-- Bot criado no @BotFather
-- Chave de API da OpenAI com faturamento habilitado
-- Projeto Railway com um serviço PostgreSQL e o serviço Node.js
+## Novidades
+- Abertura automática ao receber /start.
+- Pergunta o nome e mantém nome preferido no PostgreSQL.
+- Menu inicial com quatro opções.
+- Botões tratados via callback_query.
+- Indicador de digitação e pequena pausa natural antes das respostas.
+- Link Ecred configurado por padrão em https://www.credconsulta.online/ e sobrescrito por ECRED_URL se definido no Railway.
+- Instruções revisadas para evitar dizer que o link está em atualização quando já está configurado.
 
-## Variáveis no Railway
-Configure no serviço do bot:
-- `TELEGRAM_BOT_TOKEN`
-- `TELEGRAM_WEBHOOK_SECRET` (segredo aleatório, 32+ caracteres)
-- `OPENAI_API_KEY`
-- `OPENAI_MODEL` (opcional; padrão `gpt-4.1-mini`)
-- `DATABASE_URL` (referência à variável `DATABASE_URL` do serviço PostgreSQL do Railway)
-- `ADMIN_SETUP_SECRET` (segredo aleatório diferente do webhook)
-- `ECRED_URL=https://www.credconsulta.online/`
+## Instalação e atualização
+Mantenha os serviços atuais do Railway (Node.js e PostgreSQL). Substitua os arquivos do repositório pelos arquivos desta entrega, faça commit e aguarde o redeploy.
 
-No Railway, adicione PostgreSQL ao projeto. No serviço do bot, crie uma variável `DATABASE_URL` com referência ao serviço do banco, normalmente `${{Postgres.DATABASE_URL}}` (o nome `Postgres` deve corresponder ao nome do seu serviço PostgreSQL).
+## Variáveis no serviço do bot
+- TELEGRAM_BOT_TOKEN
+- TELEGRAM_WEBHOOK_SECRET
+- OPENAI_API_KEY
+- OPENAI_MODEL (opcional; padrão gpt-4.1-mini)
+- DATABASE_URL (referência ao PostgreSQL Railway)
+- ADMIN_SETUP_SECRET
+- ECRED_URL (opcional; padrão https://www.credconsulta.online/)
 
-## Deploy e webhook
-1. Envie os arquivos para um repositório privado no GitHub.
-2. No Railway, crie um projeto a partir desse repositório.
-3. Adicione um serviço PostgreSQL ao mesmo projeto.
-4. Configure as variáveis acima e faça deploy.
-5. Gere um domínio HTTPS para o serviço Node.js.
-6. Chame `POST https://SEU-DOMINIO/admin/set-webhook` com header `x-admin-secret: SEU_ADMIN_SETUP_SECRET` e JSON `{ "publicBaseUrl": "https://SEU-DOMINIO" }`.
-7. Teste `GET https://SEU-DOMINIO/health` e envie uma mensagem ao bot.
+## Importante sobre webhook
+Depois do deploy, registre novamente o webhook para habilitar callback_query:
+POST https://SEU-DOMINIO/admin/set-webhook
+Header: x-admin-secret: SEU_ADMIN_SETUP_SECRET
+Body JSON: {"publicBaseUrl":"https://SEU-DOMINIO"}
 
-As tabelas `leads`, `messages`, `lead_memory` e `lead_events` são criadas automaticamente.
+## Teste
+1. Envie /start ao bot.
+2. O bot deverá cumprimentar e perguntar seu nome, exibindo quatro botões.
+3. Informe um nome. O bot deverá cumprimentar pelo nome e exibir o menu.
+4. Escolha um botão e confira a resposta.
+5. Peça o link; o bot deverá fornecer https://www.credconsulta.online/.
 
-## Segurança
-- Nunca publique tokens ou chaves no GitHub.
-- Não solicite CPF, documentos, senhas ou dados bancários no Telegram.
-- Não prometa aprovação nem invente taxas, valores ou condições.
-- A página oficial configurada é `https://www.credconsulta.online/`; valide as condições comerciais com a Ecred antes de alimentar a base de conhecimento.
+## Segurança e conformidade
+- Não publicar tokens, chaves ou DATABASE_URL no GitHub.
+- Não pedir CPF, documentos, senhas, códigos ou dados bancários no Telegram.
+- Não prometer aprovação nem inventar taxas, valores ou condições.
+- A página e as condições devem ser validadas pela Ecred antes de campanhas em escala.

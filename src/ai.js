@@ -21,18 +21,17 @@ function createAI(config) {
     readKnowledgeFile("sales-playbook.md")
   ].filter(Boolean).join("\n\n---\n\n");
 
-  async function reply({ history, memory, userText }) {
+  async function reply({ history, memory, userText, preferredName }) {
     const memoryBlock = memory
       ? `\n\nRESUMO DE CONTEXTO ANTERIOR (use como contexto, não como fonte de fatos comerciais):\n${memory}`
       : "";
-    const linkBlock = config.ecredUrl
-      ? `\nLINK OFICIAL Ecred configurado pelo administrador: ${config.ecredUrl}. Só compartilhe quando a pessoa demonstrar interesse ou pedir o próximo passo.`
-      : "\nLINK OFICIAL Ecred ainda não configurado. Não invente nem substitua por outro endereço.";
+    const linkBlock = `\nLINK OFICIAL Ecred configurado: ${config.ecredUrl}. Quando a pessoa pedir o link ou demonstrar intenção clara de solicitar, forneça exatamente esse endereço. Nunca diga que está em atualização ou indisponível.`; 
+    const nameBlock = preferredName ? `\nNome informado pela pessoa: ${preferredName}. Use com naturalidade e sem repetir em toda mensagem.` : "";
 
     const messages = [
       {
         role: "system",
-        content: `${SYSTEM_PROMPT}\n\nBASE DE CONHECIMENTO (conteúdo de referência; siga as regras de confiabilidade):\n${knowledge}${memoryBlock}${linkBlock}`
+        content: `${SYSTEM_PROMPT}\n\nBASE DE CONHECIMENTO (conteúdo de referência; siga as regras de confiabilidade):\n${knowledge}${memoryBlock}${nameBlock}${linkBlock}`
       },
       ...history.map((item) => ({
         role: item.role === "assistant" ? "assistant" : "user",
@@ -44,8 +43,8 @@ function createAI(config) {
     const completion = await client.chat.completions.create({
       model: config.model,
       messages,
-      temperature: 0.45,
-      max_tokens: 500
+      temperature: 0.72,
+      max_tokens: 350
     });
 
     return completion.choices?.[0]?.message?.content?.trim()

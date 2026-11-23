@@ -31,3 +31,7 @@ No Telegram:
 
 ## Segurança
 Não envie tokens, chaves ou DATABASE_URL ao GitHub. Não prometa aprovação nem invente condições financeiras.
+
+
+## Correção Entrega 5.2 — abrir como Telegram Web App
+O botão "Acessar site oficial" usa `web_app: { url }` (Telegram Web App button), e não `url: ...` (botão de link comum). Ele abre o site HTTPS na visualização Web App do Telegram em conversa privada com o bot.

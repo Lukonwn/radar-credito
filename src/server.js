@@ -54,7 +54,7 @@ function trackedSiteButton(leadId) {
   const target = `${config.publicBaseUrl}/go/ecred/${encodeURIComponent(leadId)}?sig=${signature}`;
   return {
     inline_keyboard: [[
-      { text: "Iniciar minha solicitação", url: target }
+      { text: "Iniciar minha solicitação", web_app: { url: target } }
     ]]
   };
 }

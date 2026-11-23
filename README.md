@@ -41,7 +41,7 @@ O painel usa o banco PostgreSQL já conectado ao projeto. As métricas começam 
 
 Para registrar o acesso, o botão “Iniciar minha solicitação” passa a usar um endereço rastreador hospedado no Railway. Quando esse endereço é aberto, o servidor registra o evento no PostgreSQL e redireciona a pessoa para `https://www.credconsulta.online/`.
 
-**Diferença importante:** para permitir esse rastreamento sem instalar código no site da Ecred, o botão desta versão é um botão de URL do Telegram. Ele abre a página no navegador interno do Telegram, mas deixa de usar o modo Web App em tela própria que a versão anterior utilizava. O site de destino continua sendo o mesmo.
+O botão continua sendo do tipo Telegram Web App (`web_app`), abrindo a página na visualização própria do Telegram. O endereço do Web App é o link intermediário do Railway; ele registra a abertura e redireciona para o site da Ecred. Assim, o rastreamento não exige instalar código no site de destino.
 
 O evento contabiliza que o endereço rastreado foi acessado; não comprova que a pessoa concluiu a solicitação, nem que recebeu crédito. Pré-carregamentos ou reaberturas do link também podem gerar acessos adicionais.
 

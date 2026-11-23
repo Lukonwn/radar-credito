@@ -19,7 +19,10 @@ function loadConfig() {
     ecredUrl: (process.env.ECRED_URL || "https://www.credconsulta.online/").trim(),
     databaseUrl: process.env.DATABASE_URL,
     port: Number(process.env.PORT || 3000),
-    adminSetupSecret: process.env.ADMIN_SETUP_SECRET || ""
+    adminSetupSecret: process.env.ADMIN_SETUP_SECRET || "",
+    adminUser: process.env.ADMIN_DASHBOARD_USER || "",
+    adminPassword: process.env.ADMIN_DASHBOARD_PASSWORD || "",
+    publicBaseUrl: (process.env.PUBLIC_BASE_URL || "").replace(/\/$/, "")
   };
 }
 

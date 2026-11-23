@@ -44,6 +44,8 @@ async function initializeDatabase(pool) {
       event_name text NOT NULL, metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
       created_at timestamptz NOT NULL DEFAULT now()
     );
+    CREATE INDEX IF NOT EXISTS lead_events_name_created_idx ON lead_events(event_name, created_at DESC);
+    CREATE INDEX IF NOT EXISTS lead_events_lead_name_idx ON lead_events(lead_id, event_name);
   `);
 }
 

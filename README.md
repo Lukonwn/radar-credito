@@ -1,63 +1,61 @@
-# Radar de Crédito — Entrega 5.1 (correção do botão)
+# Radar de Crédito — Entrega 9: painel diário de métricas
 
-## Correção
-O botão oficial agora é um botão URL do Telegram (`inline_keyboard` com `url`), que abre o endereço HTTPS no navegador integrado do Telegram. Não é um Mini App Telegram com interface própria; é a página oficial aberta no navegador interno.
+Esta versão acrescenta um painel administrativo protegido por usuário e senha, além do rastreamento dos acessos ao botão de solicitação.
 
-O backend também detecta quando a resposta da IA:
-- inclui o endereço oficial configurado;
-- fala em acessar/abrir o site oficial;
-- oferece enviar o link.
+## O que o painel acompanha
 
-Nesses casos, substitui a mensagem por uma orientação curta com o botão **Acessar site oficial**. Assim, o botão não depende da IA escrever uma frase exata.
+- Starts: quantidade de eventos `/start` recebidos pelo bot.
+- Pessoas únicas: usuários diferentes que deram `/start` no período.
+- Aberturas da página Ecred: acessos ao link intermediário do botão.
+- Conversão: pessoas únicas que abriram a página divididas por pessoas únicas que iniciaram o bot.
+- Pessoas que conversaram e detalhamento por dia.
+- Filtros: hoje, últimos 7, 30 ou 90 dias.
 
-Foi corrigida a expressão de detecção de pedidos de link.
+O painel usa o banco PostgreSQL já conectado ao projeto. As métricas começam a ser registradas após esta versão entrar em produção; não há reconstrução de cliques antigos.
 
-## Atualização
-1. Extraia este ZIP.
-2. Substitua os arquivos no repositório GitHub mantendo a estrutura.
-3. Faça Commit changes.
-4. Aguarde o Railway concluir o deploy.
-5. Não é necessário criar outro bot, PostgreSQL ou serviço.
-6. O webhook já está registrado; como o formato de updates não mudou, não é necessário registrá-lo novamente.
+## Como publicar no Railway — passo a passo
 
-## Teste
-No Telegram:
-1. Peça informações sobre como solicitar.
-2. Quando o Radar falar sobre acessar a página ou oferecer o link, a resposta deverá conter o botão **Acessar site oficial**.
-3. Toque no botão e confirme que `https://www.credconsulta.online/` abre no navegador integrado do Telegram.
+1. Baixe e extraia este ZIP.
+2. Abra o repositório privado `radar-credito` no GitHub.
+3. Envie/substitua os arquivos desta versão mantendo as pastas (`src`, `sql`, `knowledge`) e o `package.json` na raiz.
+4. Faça o commit das alterações.
+5. No Railway, abra o serviço do bot e entre em **Variables**.
+6. Crie estas três variáveis:
 
-## Variável
-`ECRED_URL` deve conter `https://www.credconsulta.online/`. Se não estiver definida, o código usa esse endereço como padrão.
+   - `ADMIN_DASHBOARD_USER` — escolha um usuário administrativo, por exemplo `radaradmin`.
+   - `ADMIN_DASHBOARD_PASSWORD` — crie uma senha longa, exclusiva e difícil de adivinhar. Não use a senha de outros serviços.
+   - `PUBLIC_BASE_URL` — domínio público HTTPS do serviço do bot no Railway, por exemplo `https://nome-do-servico.up.railway.app`. Não coloque `/` no final.
+
+7. Não apague nem altere as variáveis que já existem (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, `OPENAI_API_KEY`, `DATABASE_URL`, `ECRED_URL` e outras já configuradas).
+8. Salve as variáveis e aguarde o deploy terminar com status **SUCCESS**.
+
+## Como abrir e utilizar o painel
+
+1. Copie o domínio público HTTPS do serviço Railway.
+2. No navegador, abra `https://SEU-DOMINIO/admin` (substitua pelo domínio real).
+3. O navegador pedirá usuário e senha. Use os valores definidos em `ADMIN_DASHBOARD_USER` e `ADMIN_DASHBOARD_PASSWORD`.
+4. Escolha Hoje, Últimos 7, 30 ou 90 dias.
+5. Toque em **Atualizar** para buscar os dados mais recentes.
+
+## Como o clique é medido
+
+Para registrar o acesso, o botão “Iniciar minha solicitação” passa a usar um endereço rastreador hospedado no Railway. Quando esse endereço é aberto, o servidor registra o evento no PostgreSQL e redireciona a pessoa para `https://www.credconsulta.online/`.
+
+**Diferença importante:** para permitir esse rastreamento sem instalar código no site da Ecred, o botão desta versão é um botão de URL do Telegram. Ele abre a página no navegador interno do Telegram, mas deixa de usar o modo Web App em tela própria que a versão anterior utilizava. O site de destino continua sendo o mesmo.
+
+O evento contabiliza que o endereço rastreado foi acessado; não comprova que a pessoa concluiu a solicitação, nem que recebeu crédito. Pré-carregamentos ou reaberturas do link também podem gerar acessos adicionais.
 
 ## Segurança
-Não envie tokens, chaves ou DATABASE_URL ao GitHub. Não prometa aprovação nem invente condições financeiras.
 
+- O painel exige autenticação HTTP Basic e deve ser acessado somente pelo domínio HTTPS do Railway.
+- Não compartilhe o usuário ou a senha do painel.
+- Nunca envie tokens, chaves de API, senha administrativa ou `DATABASE_URL` para o GitHub.
+- O link de rastreamento inclui uma assinatura HMAC para impedir que alguém altere o identificador do lead.
+- O bot e o painel utilizam o mesmo PostgreSQL existente; não crie outro banco.
 
-## Correção Entrega 5.2 — abrir como Telegram Web App
-O botão "Acessar site oficial" usa `web_app: { url }` (Telegram Web App button), e não `url: ...` (botão de link comum). Ele abre o site HTTPS na visualização Web App do Telegram em conversa privada com o bot.
+## Rotas
 
-
-## Entrega 6 — Atendimento acolhedor
-Configuração desta versão:
-- Personalidade acolhedora, paciente e sem pressão.
-- Ritmo natural com indicador de digitação renovado enquanto a IA prepara a resposta.
-- Menu apresentado apenas na entrada, depois da identificação do nome; a conversa segue livre depois disso.
-- Profundidade média: normalmente 3 a 5 frases para explicações que merecem contexto, sem alongar perguntas simples.
-- Evita repetir “quer que eu explique?” quando a pessoa já pediu explicação.
-- Não repete avisos de análise de crédito sem necessidade e não apressa o clique no site.
-- Aumentado o limite de tokens da resposta para permitir explicações um pouco mais completas.
-
-
-## Entrega 7 — Jornada acolhedora até a solicitação
-- A IA acolhe, entende e orienta antes de convidar para avançar.
-- Quando o cliente aceitar um convite claro para iniciar a solicitação, o backend envia o botão Web App “Iniciar minha solicitação”.
-- Pedidos diretos de link ou “quero solicitar” também mostram o botão sem perguntas adicionais.
-- O botão não é chamado de contrato; ele apenas abre o site para iniciar o preenchimento da solicitação.
-- O convite não é disparado em toda resposta nem apenas por mencionar a palavra “solicitação”.
-- O encaminhamento informa que o envio não garante aprovação e recomenda conferir juros, CET e custo total.
-
-
-## Entrega 8 — conversa consultiva
-- Reformulada a lógica de diálogo para priorizar escuta ativa, continuidade contextual e descoberta gradual da necessidade.
-- Incluídos exemplos concretos para negativação, receio, urgência, confiança, pesquisa e recusa anterior.
-- O fluxo de botão Web App e a infraestrutura da Entrega 7 foram preservados.
+- `GET /health` — verificação do serviço.
+- `GET /admin` — painel protegido.
+- `GET /admin/api/metrics?days=7` — dados do painel, também protegido.
+- `GET /go/ecred/:leadId?sig=...` — registra o acesso e redireciona para a Ecred.

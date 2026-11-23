@@ -35,3 +35,23 @@ Não envie tokens, chaves ou DATABASE_URL ao GitHub. Não prometa aprovação ne
 
 ## Correção Entrega 5.2 — abrir como Telegram Web App
 O botão "Acessar site oficial" usa `web_app: { url }` (Telegram Web App button), e não `url: ...` (botão de link comum). Ele abre o site HTTPS na visualização Web App do Telegram em conversa privada com o bot.
+
+
+## Entrega 6 — Atendimento acolhedor
+Configuração desta versão:
+- Personalidade acolhedora, paciente e sem pressão.
+- Ritmo natural com indicador de digitação renovado enquanto a IA prepara a resposta.
+- Menu apresentado apenas na entrada, depois da identificação do nome; a conversa segue livre depois disso.
+- Profundidade média: normalmente 3 a 5 frases para explicações que merecem contexto, sem alongar perguntas simples.
+- Evita repetir “quer que eu explique?” quando a pessoa já pediu explicação.
+- Não repete avisos de análise de crédito sem necessidade e não apressa o clique no site.
+- Aumentado o limite de tokens da resposta para permitir explicações um pouco mais completas.
+
+
+## Entrega 7 — Jornada acolhedora até a solicitação
+- A IA acolhe, entende e orienta antes de convidar para avançar.
+- Quando o cliente aceitar um convite claro para iniciar a solicitação, o backend envia o botão Web App “Iniciar minha solicitação”.
+- Pedidos diretos de link ou “quero solicitar” também mostram o botão sem perguntas adicionais.
+- O botão não é chamado de contrato; ele apenas abre o site para iniciar o preenchimento da solicitação.
+- O convite não é disparado em toda resposta nem apenas por mencionar a palavra “solicitação”.
+- O encaminhamento informa que o envio não garante aprovação e recomenda conferir juros, CET e custo total.

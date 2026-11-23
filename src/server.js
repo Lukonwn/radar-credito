@@ -5,7 +5,7 @@ const { loadConfig } = require("./config");
 const { createPostgres, initializeDatabase } = require("./postgres");
 const { createStore } = require("./store");
 const { createAI } = require("./ai");
-const { sendMessage, telegramRequest, sendTyping, naturalDelay, MAIN_MENU, officialSiteButton } = require("./telegram");
+const { sendMessage, telegramRequest, sendTyping, naturalDelay, whileTyping, MAIN_MENU, officialSiteButton } = require("./telegram");
 
 const config = loadConfig();
 const db = createPostgres(config);
@@ -28,11 +28,18 @@ function isLikelyName(text) {
 }
 
 function isDirectSiteRequest(text) {
-  return /\b(link|site|p[aá]gina|endere[cç]o|solicitar|acessar|abrir)\b/i.test(String(text || ""));
+  const value = String(text || "").trim();
+  return /\b(quero solicitar|quero iniciar|iniciar (uma )?solicita[cç][aã]o|come[cç]ar (a )?(solicita[cç][aã]o|cadastro)|me manda o link|manda o link|envia o link|quero o link|abrir o site|acessar o site|site oficial)\b/i.test(value);
 }
 
 function isAffirmative(text) {
-  return /^(sim|s|pode|claro|quero|manda|envia|pode mandar|pode enviar|isso|por favor)[.! ]*$/i.test(String(text || "").trim());
+  return /^(sim|s|pode|claro|quero|vamos|bora|isso|pode ser|tenho interesse|quero continuar|vamos continuar|por favor|pode encaminhar|pode iniciar)[.! ,]*$/i.test(String(text || "").trim());
+}
+
+function previousAssistantInvitedApplication(history) {
+  const previousAssistant = [...history].reverse().find((item) => item.role === "assistant");
+  if (!previousAssistant) return false;
+  return /(gostaria de continuar|quer continuar|posso te encaminhar|posso encaminhar|iniciar uma solicita[cç][aã]o|iniciar sua solicita[cç][aã]o|iniciar a solicita[cç][aã]o|preencher (a )?(proposta|solicita[cç][aã]o)|se voc[eê] se sentir confort[aá]vel)/i.test(previousAssistant.content || "");
 }
 
 function previousAssistantOfferedLink(history) {
@@ -45,7 +52,7 @@ function answerShouldShowSiteButton(answer, siteUrl) {
   const value = String(answer || "").toLowerCase();
   const url = String(siteUrl || "").trim().toLowerCase();
   return (url && value.includes(url)) ||
-    /(acessar o site oficial|acesse o site oficial|p[aá]gina oficial da ecred|quer que eu (te )?(envie|mande) o link|posso te enviar o link|quer o link para solicitar)/i.test(value);
+    /(quero solicitar|iniciar minha solicita[cç][aã]o|iniciar uma solicita[cç][aã]o|acessar o site oficial|acesse o site oficial|p[aá]gina oficial da ecred)/i.test(value);
 }
 
 async function answerWithAI({ leadId, chatId, text, messageId }) {
@@ -57,41 +64,45 @@ async function answerWithAI({ leadId, chatId, text, messageId }) {
 
   const shouldOpenOfficialSite =
     isDirectSiteRequest(text) ||
-    (isAffirmative(text) && previousAssistantOfferedLink(priorHistory));
+    (isAffirmative(text) && (
+      previousAssistantInvitedApplication(priorHistory) ||
+      previousAssistantOfferedLink(priorHistory)
+    ));
 
   if (shouldOpenOfficialSite) {
-    const message = "Claro! Para continuar, toque no botão abaixo. A página oficial da Ecred será aberta aqui no Telegram. Confira as condições e os custos antes de enviar sua solicitação.";
+    const message = "Claro! 😊 Toque no botão abaixo para abrir a página da Ecred aqui no Telegram e iniciar o preenchimento da sua solicitação. Antes de concluir, confira com atenção as condições, os juros, o CET e o valor total a pagar. O envio da solicitação não garante aprovação.";
     await sendTyping(config.telegramToken, chatId);
     await naturalDelay(message);
     await sendMessage(config.telegramToken, chatId, message, {
-      reply_markup: officialSiteButton(config.ecredUrl)
+      reply_markup: officialSiteButton(config.ecredUrl, "Iniciar minha solicitação")
     });
     await store.saveMessage(leadId, "assistant", message);
     await store.logEvent(leadId, "official_site_button_shown", { url: config.ecredUrl });
     return;
   }
 
-  await sendTyping(config.telegramToken, chatId);
-  const answer = await ai.reply({
+  const answer = await whileTyping(config.telegramToken, chatId, () => ai.reply({
     history: priorHistory,
     memory,
     userText: text,
     preferredName: profile.preferred_name
-  });
+  }));
 
   // Se a IA conduzir a conversa para a página oficial, o botão é enviado pelo backend.
   // Assim, a exibição não depende de a IA acertar uma frase específica.
   if (answerShouldShowSiteButton(answer, config.ecredUrl)) {
-    const buttonMessage = "Quando quiser continuar, toque no botão abaixo para abrir o site oficial da Ecred aqui no Telegram. Confira as condições e os custos antes de enviar sua solicitação.";
+    const buttonMessage = "Se você quiser dar o próximo passo, toque no botão abaixo para abrir a página da Ecred aqui no Telegram. Leia as condições e os custos com calma antes de enviar sua solicitação.";
+    await sendTyping(config.telegramToken, chatId);
     await naturalDelay(buttonMessage);
     await sendMessage(config.telegramToken, chatId, buttonMessage, {
-      reply_markup: officialSiteButton(config.ecredUrl)
+      reply_markup: officialSiteButton(config.ecredUrl, "Iniciar minha solicitação")
     });
     await store.saveMessage(leadId, "assistant", buttonMessage);
     await store.logEvent(leadId, "official_site_button_shown", { url: config.ecredUrl, trigger: "ai_intent" });
     return;
   }
 
+  await sendTyping(config.telegramToken, chatId);
   await naturalDelay(answer);
   await sendMessage(config.telegramToken, chatId, answer);
   await store.saveMessage(leadId, "assistant", answer);

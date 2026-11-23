@@ -18,9 +18,23 @@ async function sendTyping(token, chatId) {
 }
 
 function naturalDelay(text) {
-  // Ritmo moderado: evita resposta instantânea sem deixar a pessoa esperando demais.
-  const ms = Math.min(3200, Math.max(900, 650 + String(text || "").length * 13));
+  // Pequena pausa para dar ritmo de conversa, sem simular longas digitações artificiais.
+  const ms = Math.min(4200, Math.max(1300, 900 + String(text || "").length * 15));
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function whileTyping(token, chatId, task) {
+  await sendTyping(token, chatId);
+  const heartbeat = setInterval(() => {
+    sendTyping(token, chatId).catch((error) =>
+      console.error("Falha ao renovar indicador de digitação:", error.message)
+    );
+  }, 4000);
+  try {
+    return await task();
+  } finally {
+    clearInterval(heartbeat);
+  }
 }
 
 async function sendMessage(token, chatId, text, options = {}) {
@@ -36,10 +50,10 @@ async function sendMessage(token, chatId, text, options = {}) {
   }
 }
 
-function officialSiteButton(url) {
+function officialSiteButton(url, label = "Iniciar minha solicitação") {
   return {
     inline_keyboard: [[
-      { text: "Acessar site oficial", web_app: { url } }
+      { text: label, web_app: { url } }
     ]]
   };
 }
@@ -53,4 +67,4 @@ const MAIN_MENU = {
   ]
 };
 
-module.exports = { telegramRequest, sendMessage, sendTyping, naturalDelay, MAIN_MENU, officialSiteButton };
+module.exports = { telegramRequest, sendMessage, sendTyping, naturalDelay, whileTyping, MAIN_MENU, officialSiteButton };

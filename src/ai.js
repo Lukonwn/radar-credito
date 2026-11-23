@@ -25,7 +25,7 @@ function createAI(config) {
     const memoryBlock = memory
       ? `\n\nRESUMO DE CONTEXTO ANTERIOR (use como contexto, não como fonte de fatos comerciais):\n${memory}`
       : "";
-    const linkBlock = `\nLINK OFICIAL Ecred configurado: ${config.ecredUrl}. Quando a pessoa pedir o link ou demonstrar intenção clara de solicitar, forneça exatamente esse endereço. Nunca diga que está em atualização ou indisponível.`; 
+    const linkBlock = `\nLINK OFICIAL Ecred configurado: ${config.ecredUrl}. O backend apresenta um botão Web App quando a pessoa pedir o link, demonstrar intenção clara de solicitar ou aceitar um convite para iniciar. Não diga que está em atualização ou indisponível.`; 
     const nameBlock = preferredName ? `\nNome informado pela pessoa: ${preferredName}. Use com naturalidade e sem repetir em toda mensagem.` : "";
 
     const messages = [
@@ -43,8 +43,8 @@ function createAI(config) {
     const completion = await client.chat.completions.create({
       model: config.model,
       messages,
-      temperature: 0.72,
-      max_tokens: 350
+      temperature: 0.78,
+      max_tokens: 500
     });
 
     return completion.choices?.[0]?.message?.content?.trim()

@@ -95,10 +95,14 @@ app.post("/telegram/webhook", async (req, res) => {
     if (text === "/start" || text.startsWith("/start ")) {
       await store.logEvent(leadId, "bot_started", { start_payload: startPayload });
       await store.setAwaitingName(leadId, true);
-      const greeting = "Olá! Que bom ter você por aqui 😊\\n\\nEu sou o Radar, assistente virtual da Ecred. Vou te ajudar a entender as opções e tirar suas dúvidas sobre crédito.\\n\\nAntes de começarmos, como posso te chamar?";
+      const greeting = `Olá! Que bom ter você por aqui 😊
+
+Eu sou o Radar, assistente virtual da Ecred. Vou te ajudar a entender as opções e tirar suas dúvidas sobre crédito.
+
+Antes de começarmos, como posso te chamar?`;
       await sendTyping(config.telegramToken, message.chat.id);
       await naturalDelay(greeting);
-      await sendMessage(config.telegramToken, message.chat.id, greeting, { reply_markup: MAIN_MENU });
+      await sendMessage(config.telegramToken, message.chat.id, greeting);
       await store.saveMessage(leadId, "assistant", greeting);
       return;
     }
@@ -107,7 +111,9 @@ app.post("/telegram/webhook", async (req, res) => {
     if (profile.awaiting_name && isLikelyName(text)) {
       await store.saveMessage(leadId, "user", text, message.message_id);
       await store.savePreferredName(leadId, text);
-      const greeting = `Prazer, ${text}! 😊\\n\\nMe conta: você está procurando um empréstimo agora, quer saber se pode solicitar estando negativado ou prefere entender primeiro como funciona?`;
+      const greeting = `Prazer, ${text}! 😊
+
+Me conta: você está procurando um empréstimo agora, quer saber se pode solicitar estando negativado ou prefere entender primeiro como funciona?`;
       await sendTyping(config.telegramToken, message.chat.id);
       await naturalDelay(greeting);
       await sendMessage(config.telegramToken, message.chat.id, greeting, { reply_markup: MAIN_MENU });

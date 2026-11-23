@@ -55,3 +55,9 @@ Configuração desta versão:
 - O botão não é chamado de contrato; ele apenas abre o site para iniciar o preenchimento da solicitação.
 - O convite não é disparado em toda resposta nem apenas por mencionar a palavra “solicitação”.
 - O encaminhamento informa que o envio não garante aprovação e recomenda conferir juros, CET e custo total.
+
+
+## Entrega 8 — conversa consultiva
+- Reformulada a lógica de diálogo para priorizar escuta ativa, continuidade contextual e descoberta gradual da necessidade.
+- Incluídos exemplos concretos para negativação, receio, urgência, confiança, pesquisa e recusa anterior.
+- O fluxo de botão Web App e a infraestrutura da Entrega 7 foram preservados.
